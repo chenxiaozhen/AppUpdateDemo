@@ -1,22 +1,15 @@
 package com.library.appupdate.utils;
 
-import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.text.TextUtils;
 
 import com.library.appupdate.service.DownLoadService;
-
-import java.io.File;
 
 /**
  * Created by chenxz on 2017/9/4.
  */
 public class DownloadAppUtils {
-
-    public static long downloadUpdateApkId = -1;//下载更新Apk 下载任务对应的Id
-    public static String downloadUpdateApkFilePath;//下载更新Apk 文件路径
 
     /**
      * 通过浏览器下载APK包
@@ -32,57 +25,19 @@ public class DownloadAppUtils {
     }
 
     /**
-     * 下载更新apk包
-     * 权限:1,<uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
+     * 下载apk
      *
      * @param context
-     * @param url      apk下载链接
-     * @param filePath 下载路径
-     * @param fileName 文件名称
-     * @param title    通知栏显示的title
+     * @param url      apk下载地址
+     * @param filePath apk存放路径
+     * @param fileName apk名称
      */
-    public static void downloadForAutoInstall(Context context, String url, String filePath, String fileName, String title) {
-        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(fileName) || TextUtils.isEmpty(filePath)) {
-            return;
-        }
-
-        try {
-            Uri uri = Uri.parse(url);
-            DownloadManager downloadManager = (DownloadManager) context
-                    .getSystemService(Context.DOWNLOAD_SERVICE);
-            DownloadManager.Request request = new DownloadManager.Request(uri);
-            //在通知栏中显示
-            request.setVisibleInDownloadsUi(true);
-            request.setTitle(title);
-
-            // VISIBILITY_VISIBLE:                   下载过程中可见, 下载完后自动消失 (默认)
-            // VISIBILITY_VISIBLE_NOTIFY_COMPLETED:  下载过程中和下载完成后均可见
-            // VISIBILITY_HIDDEN:                    始终不显示通知
-            if (!UpdateAppUtils.showNotification)
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
-
-            downloadUpdateApkFilePath = filePath + File.separator + fileName;
-            deleteFile(downloadUpdateApkFilePath);// 若存在，则删除
-            Uri fileUri = Uri.fromFile(new File(downloadUpdateApkFilePath));
-            request.setDestinationUri(fileUri);
-            downloadUpdateApkId = downloadManager.enqueue(request);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            downloadForWebView(context, url);
-        }
-    }
-
-    private static boolean deleteFile(String fileStr) {
-        File file = new File(fileStr);
-        return file.delete();
-    }
-
     public static void downloadApk(Context context, String url, String filePath, String fileName) {
+        String path = filePath + "/" + fileName;
         Intent intent = new Intent(context, DownLoadService.class);
         intent.putExtra("url", url);
-        intent.putExtra("path", filePath + "/" + fileName);
-        intent.putExtra("temp", filePath + "/" + fileName + "_temp");
+        intent.putExtra("path", path);
+        intent.putExtra("temp", path + "_temp");
         context.startService(intent);
     }
 

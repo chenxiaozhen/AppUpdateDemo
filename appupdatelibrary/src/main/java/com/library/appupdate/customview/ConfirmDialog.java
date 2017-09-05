@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.library.appupdate.R;
-import com.library.appupdate.callback.DialogCallback;
 
 /**
  * Created by chenxz on 2017/9/4.
@@ -15,13 +14,14 @@ import com.library.appupdate.callback.DialogCallback;
 
 public class ConfirmDialog extends Dialog {
 
-    private DialogCallback mCallback;
+    private Callback mCallback;
 
+    private TextView title;
     private TextView content;
     private TextView cancelBtn;
     private TextView sureBtn;
 
-    public ConfirmDialog(Context context, DialogCallback callback) {
+    public ConfirmDialog(Context context, Callback callback) {
         super(context, R.style.CustomDialog);
         this.mCallback = callback;
         setCustomDialog();
@@ -29,6 +29,8 @@ public class ConfirmDialog extends Dialog {
 
     private void setCustomDialog() {
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_confirm,null);
+
+        title = (TextView) view.findViewById(R.id.dialog_confirm_title);
         content = (TextView) view.findViewById(R.id.dialog_confirm_content);
         cancelBtn = (TextView) view.findViewById(R.id.dialog_confirm_cancle);
         sureBtn = (TextView) view.findViewById(R.id.dialog_confirm_sure);
@@ -64,4 +66,13 @@ public class ConfirmDialog extends Dialog {
         sureBtn.setText(s);
         return this;
     }
+    public ConfirmDialog setTitle(String s){
+        title.setText(s);
+        return this;
+    }
+
+    public interface Callback {
+        void callback(int position);
+    }
+
 }

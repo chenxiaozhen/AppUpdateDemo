@@ -13,7 +13,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import com.library.appupdate.callback.DialogCallback;
 import com.library.appupdate.customview.ConfirmDialog;
 import com.library.appupdate.utils.UpdateAppUtils;
 
@@ -134,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     realUpdate(code);
                 } else {
-                    new ConfirmDialog(this, new DialogCallback() {
+                    new ConfirmDialog(this, new ConfirmDialog.Callback() {
                         @Override
                         public void callback(int position) {
                             if (position == 1) {
