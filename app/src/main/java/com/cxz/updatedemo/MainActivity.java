@@ -19,8 +19,8 @@ import com.library.appupdate.utils.UpdateAppUtils;
 
 public class MainActivity extends AppCompatActivity {
 
-    //服务器apk path,这里放了百度云盘的apk 作为测试
-    String apkPath = "http://issuecdn.baidupcs.com/issue/netdisk/apk/BaiduNetdisk_7.15.1.apk";
+    //服务器apk url,这里放了百度云盘的apk 作为测试
+    String apkUrl = "http://issuecdn.baidupcs.com/issue/netdisk/apk/BaiduNetdisk_7.15.1.apk";
     private int code = 0;
 
     @Override
@@ -82,9 +82,11 @@ public class MainActivity extends AppCompatActivity {
     //基本更新
     private void updat1() {
         UpdateAppUtils.from(this)
+                .checkBy(UpdateAppUtils.CHECK_BY_VERSION_NAME)
                 .serverVersionCode(2)
                 .serverVersionName("2.0")
-                .apkPath(apkPath)
+                .apkUrl(apkUrl)
+                //.tipCount(1)
                 .updateInfo("1.修复若干bug\n2.美化部分页面\n3.增加微信支付方式")
 //                .showNotification(false)
                 .update();
@@ -95,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         UpdateAppUtils.from(this)
                 .serverVersionCode(2)
                 .serverVersionName("2.0")
-                .apkPath(apkPath)
+                .apkUrl(apkUrl)
                 .downloadBy(UpdateAppUtils.DOWNLOAD_BY_BROWSER)
                 .update();
     }
@@ -105,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         UpdateAppUtils.from(this)
                 .serverVersionCode(2)
                 .serverVersionName("2.0")
-                .apkPath(apkPath)
+                .apkUrl(apkUrl)
                 .isForce(true)
                 .update();
     }
@@ -116,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 .checkBy(UpdateAppUtils.CHECK_BY_VERSION_NAME)
                 .serverVersionName("2.0")
                 .serverVersionCode(2)
-                .apkPath(apkPath)
+                .apkUrl(apkUrl)
                 .downloadBy(UpdateAppUtils.DOWNLOAD_BY_BROWSER)
                 .isForce(true)
                 .update();

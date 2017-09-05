@@ -54,4 +54,14 @@ public class ConfirmDialog extends Dialog {
         content.setText(s);
         return this;
     }
+
+    public ConfirmDialog setLeftBtnText(String s){
+        cancelBtn.setText(s);
+        return this;
+    }
+
+    public ConfirmDialog setRightBtnText(String s){
+        sureBtn.setText(s);
+        return this;
+    }
 }

@@ -4,9 +4,9 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
 import android.text.TextUtils;
-import android.util.Log;
+
+import com.library.appupdate.service.DownLoadService;
 
 import java.io.File;
 
@@ -14,7 +14,7 @@ import java.io.File;
  * Created by chenxz on 2017/9/4.
  */
 public class DownloadAppUtils {
-    private static final String TAG = DownloadAppUtils.class.getSimpleName();
+
     public static long downloadUpdateApkId = -1;//下载更新Apk 下载任务对应的Id
     public static String downloadUpdateApkFilePath;//下载更新Apk 文件路径
 
@@ -36,12 +36,16 @@ public class DownloadAppUtils {
      * 权限:1,<uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
      *
      * @param context
-     * @param url
+     * @param url      apk下载链接
+     * @param filePath 下载路径
+     * @param fileName 文件名称
+     * @param title    通知栏显示的title
      */
-    public static void downloadForAutoInstall(Context context, String url, String fileName, String title) {
-        if (TextUtils.isEmpty(url)) {
+    public static void downloadForAutoInstall(Context context, String url, String filePath, String fileName, String title) {
+        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(fileName) || TextUtils.isEmpty(filePath)) {
             return;
         }
+
         try {
             Uri uri = Uri.parse(url);
             DownloadManager downloadManager = (DownloadManager) context
@@ -57,14 +61,6 @@ public class DownloadAppUtils {
             if (!UpdateAppUtils.showNotification)
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
 
-            String filePath = null;
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {//外部存储卡
-                filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-            } else {
-                Log.i(TAG, "没有SD卡");
-                return;
-            }
-
             downloadUpdateApkFilePath = filePath + File.separator + fileName;
             deleteFile(downloadUpdateApkFilePath);// 若存在，则删除
             Uri fileUri = Uri.fromFile(new File(downloadUpdateApkFilePath));
@@ -74,14 +70,20 @@ public class DownloadAppUtils {
         } catch (Exception e) {
             e.printStackTrace();
             downloadForWebView(context, url);
-        } finally {
-//            registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         }
     }
-
 
     private static boolean deleteFile(String fileStr) {
         File file = new File(fileStr);
         return file.delete();
     }
+
+    public static void downloadApk(Context context, String url, String filePath, String fileName) {
+        Intent intent = new Intent(context, DownLoadService.class);
+        intent.putExtra("url", url);
+        intent.putExtra("path", filePath + "/" + fileName);
+        intent.putExtra("temp", filePath + "/" + fileName + "_temp");
+        context.startService(intent);
+    }
+
 }

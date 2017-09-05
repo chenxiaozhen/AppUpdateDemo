@@ -1,15 +1,13 @@
-package com.library.appupdate.utils;
+package com.library.appupdate.receiver;
 
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
-import android.support.v4.content.FileProvider;
 
-import java.io.File;
+import com.library.appupdate.utils.DownloadAppUtils;
+import com.library.appupdate.utils.UpdateAppUtils;
 
 
 /**
@@ -41,27 +39,11 @@ public class UpdateAppReceiver extends BroadcastReceiver {
                         downloadManager.remove(downloadId);
 
                     } else if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        if (DownloadAppUtils.downloadUpdateApkFilePath != null) {
-                            Intent i = new Intent(Intent.ACTION_VIEW);
-                            File apkFile = new File(DownloadAppUtils.downloadUpdateApkFilePath);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                Uri contentUri = FileProvider.getUriForFile(
-                                        context, context.getPackageName() + ".fileprovider", apkFile);
-                                i.setDataAndType(contentUri, "application/vnd.android.package-archive");
-                            } else {
-                                i.setDataAndType(Uri.fromFile(apkFile),
-                                        "application/vnd.android.package-archive");
-                            }
-                            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            context.startActivity(i);
-                        }
+                        UpdateAppUtils.installApk(context,DownloadAppUtils.downloadUpdateApkFilePath);
                     }
                 }
                 c.close();
             }
         }
-
-
     }
 }

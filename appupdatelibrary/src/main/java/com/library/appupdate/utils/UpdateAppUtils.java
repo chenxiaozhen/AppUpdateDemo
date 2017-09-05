@@ -2,15 +2,23 @@ package com.library.appupdate.utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.library.appupdate.callback.DialogCallback;
 import com.library.appupdate.customview.ConfirmDialog;
+
+import java.io.File;
 
 /**
  * Created by chenxz on 2017/9/4.
@@ -26,14 +34,19 @@ public class UpdateAppUtils {
     private Activity activity;
     private int checkBy = CHECK_BY_VERSION_CODE;
     private int downloadBy = DOWNLOAD_BY_APP;
-    private int serverVersionCode = 0;
-    private String apkPath = "";
-    private String serverVersionName = "";
+    private int serverVersionCode = 1;
+    private String serverVersionName = "1.0";
+    private String apkUrl = "";// apk下载的链接
+    private String filePath = "";// 下载apk的路径
+    private String apkName = "app" + serverVersionName + ".apk";
     private boolean isForce = false; //是否强制更新
     private int localVersionCode = 0;
     private String localVersionName = "";
     public static boolean showNotification = true;
-    private String updateInfo = "";
+    private String updateInfo = "";// 更新提示的内容
+    private int tipCount = -1;// 提示更新的次数， -1 表示强制提示
+
+    private String TIP_COUNT = "tip_count" + serverVersionName;
 
     private UpdateAppUtils(Activity activity) {
         this.activity = activity;
@@ -49,8 +62,18 @@ public class UpdateAppUtils {
         return this;
     }
 
-    public UpdateAppUtils apkPath(String apkPath) {
-        this.apkPath = apkPath;
+    public UpdateAppUtils apkUrl(String apkUrl) {
+        this.apkUrl = apkUrl;
+        return this;
+    }
+
+    public UpdateAppUtils filePath(String filePath) {
+        this.filePath = filePath;
+        return this;
+    }
+
+    public UpdateAppUtils apkName(String apkName) {
+        this.apkName = apkName;
         return this;
     }
 
@@ -85,6 +108,11 @@ public class UpdateAppUtils {
         return this;
     }
 
+    public UpdateAppUtils tipCount(int tipCount) {
+        this.tipCount = tipCount;
+        return this;
+    }
+
     //获取apk的版本号 currentVersionCode
     private void getAPPLocalVersion(Context ctx) {
         PackageManager manager = ctx.getPackageManager();
@@ -104,6 +132,7 @@ public class UpdateAppUtils {
                     toUpdate();
                 } else {
                     Log.i(TAG, "当前版本是最新版本" + serverVersionCode + "/" + serverVersionName);
+                    Toast.makeText(activity, "当前已是最新版本", Toast.LENGTH_LONG).show();
                 }
                 break;
 
@@ -112,45 +141,95 @@ public class UpdateAppUtils {
                     toUpdate();
                 } else {
                     Log.i(TAG, "当前版本是最新版本" + serverVersionCode + "/" + serverVersionName);
+                    Toast.makeText(activity, "当前已是最新版本", Toast.LENGTH_LONG).show();
                 }
                 break;
         }
-
     }
 
     private void toUpdate() {
-
-        realUpdate();
-
-        //尝试在内部适配6.0
-//        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                == PackageManager.PERMISSION_GRANTED){
-//            realUpdate();
-//        }else {//申请权限
-//            ActivityCompat.requestPermissions(activity,
-//                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-//        }
+        if (TextUtils.isEmpty(filePath)) {
+            filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        }
+        String filePa = filePath + "/" + apkName;
+        if (new File(filePa).exists()) {
+            // apk已下载，直接安装
+            install();
+        } else {
+            if (tipCount == -1) {
+                realUpdate();
+            } else if (tipCount > 0) {
+                int count = (int) SPUtils.get(activity, TIP_COUNT, 1);
+                if (tipCount >= count) {
+                    realUpdate();
+                }
+            }
+        }
     }
 
+    /**
+     * 已下载apk，提示安装
+     */
+    private void install() {
+        ConfirmDialog dialog = new ConfirmDialog(activity, new DialogCallback() {
+            @Override
+            public void callback(int position) {
+                switch (position) {
+                    case 0:  // leftBtn
+                        if (isForce) {
+                            System.exit(0);
+                        } else {
+                            // TODO: 2017/9/4
+                        }
+                        break;
+
+                    case 1:  // rightBtn
+                        installApk(activity, filePath);
+                        break;
+                }
+            }
+        });
+
+        String content = "安装包已下载，请安装！";
+        dialog.setContent(content)
+                .setLeftBtnText("稍后安装")
+                .setRightBtnText("立即安装");
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
+    /**
+     * 下载apk
+     */
     private void realUpdate() {
         ConfirmDialog dialog = new ConfirmDialog(activity, new DialogCallback() {
             @Override
             public void callback(int position) {
                 switch (position) {
-                    case 0:  //cancle
-                        if (isForce) System.exit(0);
+                    case 0:  // leftBtn
+                        if (isForce) {
+                            System.exit(0);
+                        } else {
+                            // TODO: 2017/9/4
+                            if (tipCount > 0) {
+                                int count = (int) SPUtils.get(activity, TIP_COUNT, 1);
+                                count++;
+                                SPUtils.put(activity, TIP_COUNT, count);
+                            }
+                        }
                         break;
 
-                    case 1:  //sure
+                    case 1:  // rightBtn
                         if (downloadBy == DOWNLOAD_BY_APP) {
                             if (isWifiConnected(activity)) {
-                                DownloadAppUtils.downloadForAutoInstall(activity, apkPath, "demo.apk", serverVersionName);
+                                //DownloadAppUtils.downloadForAutoInstall(activity, apkUrl, filePath, apkName, apkName);
+                                DownloadAppUtils.downloadApk(activity, apkUrl, filePath, apkName);
                             } else {
                                 new ConfirmDialog(activity, new DialogCallback() {
                                     @Override
                                     public void callback(int position) {
                                         if (position == 1) {
-                                            DownloadAppUtils.downloadForAutoInstall(activity, apkPath, "demo.apk", serverVersionName);
+                                            DownloadAppUtils.downloadForAutoInstall(activity, apkUrl, filePath, apkName, apkName);
                                         } else {
                                             if (isForce) activity.finish();
                                         }
@@ -159,7 +238,7 @@ public class UpdateAppUtils {
                             }
 
                         } else if (downloadBy == DOWNLOAD_BY_BROWSER) {
-                            DownloadAppUtils.downloadForWebView(activity, apkPath);
+                            DownloadAppUtils.downloadForWebView(activity, apkUrl);
                         }
                         break;
                 }
@@ -170,28 +249,12 @@ public class UpdateAppUtils {
         if (!TextUtils.isEmpty(updateInfo)) {
             content = "发现新版本:" + serverVersionName + "是否下载更新?\n\n" + updateInfo;
         }
-        dialog.setContent(content);
+        dialog.setContent(content)
+                .setLeftBtnText("暂不更新")
+                .setRightBtnText("立即更新");
         dialog.setCancelable(false);
         dialog.show();
     }
-
-
-    //尝试在内部适配6.0 可能会引起内存泄露
-//    public static void onRequestPermissionsResult(int requestCode,
-//                                            @NonNull String[] permissions,
-//                                            @NonNull int[] grantResults){
-//        switch (requestCode){
-//            case 1:
-//                if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
-////                    realUpdate();
-//                    mHandler.sendEmptyMessage(1);
-//                }else {
-//                    //提示用户没有授予权限
-//                }
-//                break;
-//        }
-//    }
-
 
     /**
      * 检测wifi是否连接
@@ -206,5 +269,31 @@ public class UpdateAppUtils {
         }
         return false;
     }
+
+
+    /**
+     * 调用系统安装apk
+     *
+     * @param context
+     * @param filePath apk文件路径
+     */
+    public static void installApk(Context context, String filePath) {
+        if (!TextUtils.isEmpty(filePath)) {
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            File apkFile = new File(filePath);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                Uri contentUri = FileProvider.getUriForFile(
+                        context, context.getPackageName() + ".fileprovider", apkFile);
+                i.setDataAndType(contentUri, "application/vnd.android.package-archive");
+            } else {
+                i.setDataAndType(Uri.fromFile(apkFile),
+                        "application/vnd.android.package-archive");
+            }
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        }
+    }
+
 
 }

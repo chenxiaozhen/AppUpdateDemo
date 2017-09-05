@@ -9,7 +9,7 @@
     <application android:allowBackup="true"
         android:supportsRtl="true">
         <receiver
-            android:name=".utils.UpdateAppReceiver"
+            android:name=".receiver.UpdateAppReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -17,6 +17,18 @@
                 <action android:name="android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED"/>
             </intent-filter>
         </receiver>
+        <receiver android:name=".receiver.DownLoadReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.hhwy.downloadComplete"></action>
+            </intent-filter>
+        </receiver>
+        <service android:name=".service.DownLoadService">
+            <intent-filter>
+                <action android:name="com.hhwy.downloadComplete"></action>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
