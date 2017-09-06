@@ -7,14 +7,10 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
-
-import com.library.appupdate.R;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -114,8 +110,9 @@ public class DownLoadService extends IntentService {
             return;
         if (mBuilder == null) {
             mBuilder = new NotificationCompat.Builder(this);
-            // TODO: 2017/9/5 获取应用的图标
-            int id = R.drawable.ic_launcher;
+            // 获取应用的图标
+            ApplicationInfo info = this.getApplicationInfo();
+            int id = info.icon; //R.drawable.ic_launcher;
             mBuilder.setSmallIcon(id)
                     .setLargeIcon(BitmapFactory.decodeResource(this.getResources(), id))
                     .setAutoCancel(false)

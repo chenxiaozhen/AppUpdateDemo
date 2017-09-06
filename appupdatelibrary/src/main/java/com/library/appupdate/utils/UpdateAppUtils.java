@@ -59,7 +59,8 @@ public class UpdateAppUtils {
     }
 
     public UpdateAppUtils checkBy(int checkBy) {
-        this.checkBy = checkBy;
+        if (checkBy == CHECK_BY_VERSION_CODE || checkBy == CHECK_BY_VERSION_NAME)
+            this.checkBy = checkBy;
         return this;
     }
 
@@ -69,12 +70,14 @@ public class UpdateAppUtils {
     }
 
     public UpdateAppUtils filePath(String filePath) {
-        this.filePath = filePath;
+        if (TextUtils.isEmpty(filePath))
+            this.filePath = filePath;
         return this;
     }
 
     public UpdateAppUtils apkName(String apkName) {
-        this.apkName = apkName;
+        if (TextUtils.isEmpty(apkName))
+            this.apkName = apkName;
         return this;
     }
 
@@ -91,7 +94,8 @@ public class UpdateAppUtils {
     }
 
     public UpdateAppUtils downloadBy(int downloadBy) {
-        this.downloadBy = downloadBy;
+        if (downloadBy == DOWNLOAD_BY_APP || downloadBy == DOWNLOAD_BY_BROWSER)
+            this.downloadBy = downloadBy;
         return this;
     }
 
@@ -226,7 +230,7 @@ public class UpdateAppUtils {
                         if (isForce) {
                             System.exit(0);
                         } else {
-                            // TODO: 2017/9/4
+                            // TODO: 2017/9/4 记录提示框弹出次数
                             if (tipCount > 0) {
                                 int count = (int) SPUtils.get(activity, TIP_COUNT, 1);
                                 count++;
