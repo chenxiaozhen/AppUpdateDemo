@@ -70,13 +70,13 @@ public class UpdateAppUtils {
     }
 
     public UpdateAppUtils filePath(String filePath) {
-        if (TextUtils.isEmpty(filePath))
+        if (!TextUtils.isEmpty(filePath))
             this.filePath = filePath;
         return this;
     }
 
     public UpdateAppUtils apkName(String apkName) {
-        if (TextUtils.isEmpty(apkName))
+        if (!TextUtils.isEmpty(apkName))
             this.apkName = apkName;
         return this;
     }
